@@ -100,11 +100,11 @@ Requires Python 3.10+, PostgreSQL running with `olist_db` populated (see Full Se
 
 ```bash
 # 1. Clone
-git clone <repo-url>
+git clone https://github.com/DevilsBreath/olist_analytics
 cd E-commerce_project
 
 # 2. Install API dependencies
-pip install -r requirements_api.txt
+pip install -r requirements.txt
 
 # 3. Start the server
 uvicorn api.main:app --host 0.0.0.0 --port 8000
@@ -138,9 +138,9 @@ GRANT ALL PRIVILEGES ON DATABASE olist_db TO olist_user;
 ### Step 2 — Environment
 
 ```bash
-conda create -n olist python=3.10
+conda create -n olist 
 conda activate olist
-pip install -r requirements_api.txt
+pip install -r requirements.txt
 pip install jupyter xgboost lightgbm shap imbalanced-learn psycopg2-binary sqlalchemy
 ```
 
