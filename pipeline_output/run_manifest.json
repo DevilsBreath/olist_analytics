@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-05-15T06:47:16.490718",
+  "views": {
+    "monthly_revenue": {
+      "rows": 22,
+      "cols": [
+        "month",
+        "revenue",
+        "prev_month_revenue",
+        "mom_growth_pct"
+      ],
+      "warnings": []
+    },
+    "cohort_retention": {
+      "rows": 225,
+      "cols": [
+        "cohort_month",
+        "months_since_first",
+        "cohort_size",
+        "retained"
+      ],
+      "warnings": []
+    },
+    "seller_ranking": {
+      "rows": 3090,
+      "cols": [
+        "seller_id",
+        "total_orders",
+        "total_revenue",
+        "avg_review_score",
+        "revenue_rank"
+      ],
+      "warnings": []
+    },
+    "delivery_delay_by_state": {
+      "rows": 27,
+      "cols": [
+        "customer_state",
+        "total_orders",
+        "avg_delay_days"
+      ],
+      "warnings": []
+    }
+  }
+}

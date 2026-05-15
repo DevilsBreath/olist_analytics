@@ -1,0 +1,17 @@
+{
+  "feature_cols": [
+    "price",
+    "freight_value",
+    "delivery_delay",
+    "payment_installments",
+    "payment_type",
+    "category"
+  ],
+  "cat_cols": [
+    "payment_type",
+    "category"
+  ],
+  "label": "low_review (score <= 2)",
+  "pr_auc": 0.3963,
+  "roc_auc": 0.6906
+}

@@ -1,0 +1,44 @@
+The Project: E-Commerce Customer Behavior Analytics Platform
+Why this domain? Highest interview frequency for DS roles in India. Companies like Flipkart, Meesho, Juspay, and even Fractal/Sigmoid clients are heavily e-commerce. Interviewers immediately relate to the problem space.
+What makes this different from generic projects? Most candidates do EDA + a bar chart and call it "analytics." You're going to build an end-to-end system with a predictive layer, SQL-heavy backend, and a deployed dashboard. That combination is rare at fresher level.
+
+Dataset
+Use the Brazilian E-Commerce (Olist) dataset from Kaggle. It has 100k+ orders, 8 relational tables, real-world messiness, and covers customers, orders, payments, reviews, and sellers. It's publicly accepted in interviews because it's well-known but complex enough to show real skill.
+
+Full Roadmap — 3 Weeks
+
+Week 1 — Data Engineering + SQL Layer
+Day 1-2: Setup & Ingestion
+Load all 8 CSVs into a local PostgreSQL database (not just pandas DataFrames — this signals engineering maturity). Define proper schema with foreign keys. This alone separates you from 80% of candidates who work only in notebooks.
+Day 3-4: SQL Analytics Layer
+This is where your advanced SQL matters. Build queries for:
+
+Revenue by month using window functions (LAG, LEAD) to compute MoM growth
+Customer cohort retention — which month they first ordered, what % returned in subsequent months. This requires CTEs + date truncation + self-joins. Interviewers love asking about cohort analysis.
+Seller performance ranking using DENSE_RANK() partitioned by product category
+Average delivery delay by state using conditional aggregations
+
+Write these as reusable SQL views, not one-off queries. You'll reference them in your app.
+Day 5-7: Python Data Pipeline
+Build a pipeline using SQLAlchemy that pulls from your PostgreSQL views into pandas. Add basic data validation (null checks, type checks). This is your data contract layer — it makes the whole system reproducible.
+
+Week 2 — Predictive Modeling + Insights
+Day 8-10: Feature Engineering + ML
+Build two models:
+First — Customer Churn Predictor (XGBoost). Define churn as no purchase in 90 days after last order. Features: recency, frequency, monetary value (RFM), average review score, product category, payment method, delivery delay. This is a binary classification problem. Use SMOTE for class imbalance since churned customers will be the minority. Evaluate with precision-recall AUC, not just accuracy. You know why — imbalanced classes make accuracy useless.
+Second — Review Score Predictor (optional but high ROI). Predict whether an order will get a low review (1-2 stars) based on delivery delay, price, seller metrics. Lightweight model — Logistic Regression or LightGBM. Gives you a second talking point without doubling your work.
+Day 11-14: SHAP Explainability
+Add SHAP values to your churn model. Plot feature importance. This is the thing most freshers skip and it's exactly what DS interviewers at Fractal/Sigmoid ask about — "how do you explain the model to a business stakeholder?" You'll have a real answer with a real output.
+
+Week 3 — Deployment + Documentation
+Day 15-17: FastAPI Backend
+Build API endpoints:
+
+GET /metrics — returns key KPIs (revenue, orders, churn rate) from SQL views
+POST /predict/churn — takes customer features, returns churn probability
+GET /cohort — returns cohort retention matrix
+
+Day 18-20: Frontend Dashboard
+Since you have Flask/FastAPI experience, build a clean dashboard. Use Plotly.js or Chart.js for interactive charts. Include: revenue trend line, cohort heatmap, churn risk distribution, SHAP feature importance chart. Deploy on Render (free tier) or Railway — both support PostgreSQL + FastAPI.
+Day 21: Documentation + GitHub
+Write a proper README with: problem statement, architecture diagram, how to run locally, API docs, and screenshots of the dashboard. Add a notebooks/ folder with your EDA. Interviewers do look at READMEs.

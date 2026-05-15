@@ -1,0 +1,24 @@
+{
+  "feature_cols": [
+    "frequency",
+    "monetary",
+    "avg_order_value",
+    "avg_review_score",
+    "avg_delivery_delay",
+    "pct_late_orders",
+    "avg_installments",
+    "tenure_days",
+    "customer_state",
+    "top_category",
+    "top_payment_type"
+  ],
+  "cat_cols": [
+    "customer_state",
+    "top_category",
+    "top_payment_type"
+  ],
+  "churn_days": 90,
+  "ref_date": "2018-08-30",
+  "pr_auc": 0.8897,
+  "roc_auc": 0.6839
+}

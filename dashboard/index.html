@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Olist Analytics Platform</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+  <style>
+    body { background: #f0f2f5; font-family: system-ui, -apple-system, sans-serif; }
+
+    .navbar-brand { font-weight: 700; letter-spacing: 0.3px; font-size: 1.05rem; }
+
+    .kpi-card {
+      background: white;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+      padding: 16px 18px;
+    }
+    .kpi-label {
+      font-size: 0.72rem;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+    .kpi-value {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #0d6efd;
+      line-height: 1.1;
+    }
+
+    .chart-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+      padding: 16px;
+      height: 100%;
+    }
+
+    .prob-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .nav-tabs .nav-link {
+      font-weight: 500;
+      color: #495057;
+    }
+    .nav-tabs .nav-link.active {
+      color: #0d6efd;
+      font-weight: 600;
+    }
+
+    .badge-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .spinner-border-sm { width: 1rem; height: 1rem; }
+
+    #churn-placeholder, #review-placeholder {
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #adb5bd;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark bg-dark py-2 mb-0 sticky-top">
+    <div class="container-fluid px-4">
+      <span class="navbar-brand mb-0">Olist E-Commerce Analytics Platform</span>
+      <div class="d-flex gap-2">
+        <span class="badge bg-primary">FastAPI</span>
+        <span class="badge bg-warning text-dark">XGBoost</span>
+        <span class="badge bg-success">LightGBM</span>
+        <span class="badge bg-info text-dark">SHAP</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid px-4 py-3">
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-analytics" data-bs-toggle="tab"
+                data-bs-target="#analytics-pane" type="button" role="tab">
+          Analytics
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-churn" data-bs-toggle="tab"
+                data-bs-target="#churn-pane" type="button" role="tab">
+          Churn Predictor
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-review" data-bs-toggle="tab"
+                data-bs-target="#review-pane" type="button" role="tab">
+          Review Risk
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ════════════════════════════════════════════════════════════
+           ANALYTICS TAB
+           ════════════════════════════════════════════════════════════ -->
+      <div class="tab-pane fade show active" id="analytics-pane" role="tabpanel">
+
+        <!-- KPI row -->
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-sm-4 col-lg-2">
+            <div class="kpi-card">
+              <div class="kpi-label">Total Revenue</div>
+              <div class="kpi-value" id="kpi-revenue">—</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-lg-2">
+            <div class="kpi-card">
+              <div class="kpi-label">Total Orders</div>
+              <div class="kpi-value" id="kpi-orders">—</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-lg-2">
+            <div class="kpi-card">
+              <div class="kpi-label">Avg Review Score</div>
+              <div class="kpi-value" id="kpi-review">—</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-lg-2">
+            <div class="kpi-card">
+              <div class="kpi-label">Avg Delivery Delay</div>
+              <div class="kpi-value" id="kpi-delay">—</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-lg-2">
+            <div class="kpi-card">
+              <div class="kpi-label">Peak Revenue Month</div>
+              <div class="kpi-value" id="kpi-peak" style="font-size:1.1rem">—</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-lg-2">
+            <div class="kpi-card">
+              <div class="kpi-label">Median MoM Growth</div>
+              <div class="kpi-value" id="kpi-mom">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue + Delivery -->
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-xl-8">
+            <div class="chart-card">
+              <div id="revenue-chart" style="height:320px;"></div>
+            </div>
+          </div>
+          <div class="col-12 col-xl-4">
+            <div class="chart-card">
+              <div id="delivery-chart" style="height:320px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cohort heatmap -->
+        <div class="row g-3 mb-3">
+          <div class="col-12">
+            <div class="chart-card">
+              <div id="cohort-chart" style="height:400px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model metrics -->
+        <div class="row g-3 mb-3" id="model-row" style="display:none">
+          <div class="col-md-6">
+            <div class="kpi-card d-flex gap-4 align-items-center">
+              <div>
+                <div class="kpi-label mb-1">Churn Model (XGBoost)</div>
+                <span class="badge bg-primary me-1">PR-AUC <span id="churn-prauc"></span></span>
+                <span class="badge bg-secondary">ROC-AUC <span id="churn-rocauc"></span></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="kpi-card d-flex gap-4 align-items-center">
+              <div>
+                <div class="kpi-label mb-1">Review Model (LightGBM)</div>
+                <span class="badge bg-warning text-dark me-1">PR-AUC <span id="review-prauc"></span></span>
+                <span class="badge bg-secondary">ROC-AUC <span id="review-rocauc"></span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- /analytics-pane -->
+
+      <!-- ════════════════════════════════════════════════════════════
+           CHURN PREDICTOR TAB
+           ════════════════════════════════════════════════════════════ -->
+      <div class="tab-pane fade" id="churn-pane" role="tabpanel">
+        <div class="row g-4 mt-1">
+
+          <!-- Form -->
+          <div class="col-12 col-lg-5">
+            <div class="chart-card">
+              <h6 class="fw-bold mb-3">Customer Churn Predictor</h6>
+              <form id="churn-form" novalidate>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Frequency (orders)</label>
+                    <input type="number" class="form-control form-control-sm" name="frequency" value="1" min="1" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Monetary (R$)</label>
+                    <input type="number" class="form-control form-control-sm" name="monetary" value="120" min="0.01" step="0.01" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Avg Order Value (R$)</label>
+                    <input type="number" class="form-control form-control-sm" name="avg_order_value" value="120" min="0.01" step="0.01" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Avg Review Score (1–5)</label>
+                    <input type="number" class="form-control form-control-sm" name="avg_review_score" value="3.5" min="1" max="5" step="0.1" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Avg Delivery Delay (days)</label>
+                    <input type="number" class="form-control form-control-sm" name="avg_delivery_delay" value="-5" step="0.1">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">% Late Orders (0–1)</label>
+                    <input type="number" class="form-control form-control-sm" name="pct_late_orders" value="0.1" min="0" max="1" step="0.01" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Avg Installments</label>
+                    <input type="number" class="form-control form-control-sm" name="avg_installments" value="2" min="1" step="0.5" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Tenure (days)</label>
+                    <input type="number" class="form-control form-control-sm" name="tenure_days" value="0" min="0" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">State</label>
+                    <select class="form-select form-select-sm" name="customer_state">
+                      <option value="SP">SP</option><option value="RJ">RJ</option>
+                      <option value="MG">MG</option><option value="RS">RS</option>
+                      <option value="PR">PR</option><option value="SC">SC</option>
+                      <option value="BA">BA</option><option value="GO">GO</option>
+                      <option value="ES">ES</option><option value="PE">PE</option>
+                      <option value="CE">CE</option><option value="MA">MA</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Payment Type</label>
+                    <select class="form-select form-select-sm" name="top_payment_type">
+                      <option value="credit_card">Credit Card</option>
+                      <option value="boleto">Boleto</option>
+                      <option value="debit_card">Debit Card</option>
+                      <option value="voucher">Voucher</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-semibold">Top Category</label>
+                    <input type="text" class="form-control form-control-sm" name="top_category" value="health_beauty">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm mt-3 w-100" id="churn-submit-btn">
+                  Predict Churn
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Result -->
+          <div class="col-12 col-lg-7">
+            <div class="chart-card" id="churn-result" style="display:none">
+              <div class="d-flex align-items-center gap-4 mb-2">
+                <div>
+                  <div class="kpi-label">Churn Probability</div>
+                  <div class="prob-value" id="churn-prob">—</div>
+                </div>
+                <span class="badge fs-6 px-3 py-2" id="churn-badge">—</span>
+              </div>
+              <div id="churn-shap-chart" style="height:300px;"></div>
+              <p class="small text-muted mt-1 mb-0">
+                Base (expected) value: <strong id="churn-base">—</strong>.
+                Red bars increase churn risk, green bars decrease it.
+              </p>
+            </div>
+            <div class="chart-card" id="churn-placeholder">
+              Fill the form and click Predict to see the churn probability and SHAP explanation.
+            </div>
+          </div>
+
+        </div>
+      </div> <!-- /churn-pane -->
+
+      <!-- ════════════════════════════════════════════════════════════
+           REVIEW RISK TAB
+           ════════════════════════════════════════════════════════════ -->
+      <div class="tab-pane fade" id="review-pane" role="tabpanel">
+        <div class="row g-4 mt-1">
+
+          <!-- Form -->
+          <div class="col-12 col-lg-5">
+            <div class="chart-card">
+              <h6 class="fw-bold mb-3">Low-Review Risk Predictor</h6>
+              <form id="review-form" novalidate>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Price (R$)</label>
+                    <input type="number" class="form-control form-control-sm" name="price" value="150" min="0.01" step="0.01" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Freight Value (R$)</label>
+                    <input type="number" class="form-control form-control-sm" name="freight_value" value="20" min="0" step="0.01" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Delivery Delay (days)</label>
+                    <input type="number" class="form-control form-control-sm" name="delivery_delay" value="0" step="0.1">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Installments</label>
+                    <input type="number" class="form-control form-control-sm" name="payment_installments" value="1" min="1" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Payment Type</label>
+                    <select class="form-select form-select-sm" name="payment_type">
+                      <option value="credit_card">Credit Card</option>
+                      <option value="boleto">Boleto</option>
+                      <option value="debit_card">Debit Card</option>
+                      <option value="voucher">Voucher</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Category</label>
+                    <input type="text" class="form-control form-control-sm" name="category" value="electronics">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-warning btn-sm mt-3 w-100 text-dark fw-semibold" id="review-submit-btn">
+                  Predict Review Risk
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Result -->
+          <div class="col-12 col-lg-7">
+            <div class="chart-card" id="review-result" style="display:none">
+              <div class="d-flex align-items-center gap-4 mb-2">
+                <div>
+                  <div class="kpi-label">Low-Review Probability</div>
+                  <div class="prob-value" id="review-prob">—</div>
+                </div>
+                <span class="badge fs-6 px-3 py-2" id="review-badge">—</span>
+              </div>
+              <div id="review-shap-chart" style="height:280px;"></div>
+              <p class="small text-muted mt-1 mb-0">
+                Base (expected) value: <strong id="review-base">—</strong>.
+                Red bars increase low-review risk, green bars decrease it.
+              </p>
+            </div>
+            <div class="chart-card" id="review-placeholder">
+              Fill the form and click Predict to see low-review probability and SHAP explanation.
+            </div>
+          </div>
+
+        </div>
+      </div> <!-- /review-pane -->
+
+    </div><!-- /tab-content -->
+  </div><!-- /container -->
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /* ----------------------------------------------------------------
+       Config
+    ---------------------------------------------------------------- */
+    const API = window.location.origin;
+
+    const LAYOUT_BASE = {
+      margin: { t: 42, l: 55, r: 22, b: 45 },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor:  'transparent',
+      font: { family: 'system-ui, -apple-system, sans-serif', size: 11, color: '#444' },
+      hoverlabel: { font: { size: 11 } },
+    };
+    const CFG = { responsive: true, displayModeBar: false };
+
+    /* ----------------------------------------------------------------
+       Fetch helper
+    ---------------------------------------------------------------- */
+    async function apiFetch(path, opts = {}) {
+      const r = await fetch(API + path, opts);
+      if (!r.ok) {
+        const msg = await r.text();
+        throw new Error(`${r.status}: ${msg}`);
+      }
+      return r.json();
+    }
+
+    /* ----------------------------------------------------------------
+       KPIs
+    ---------------------------------------------------------------- */
+    async function loadMetrics() {
+      const d = await apiFetch('/metrics');
+
+      document.getElementById('kpi-revenue').textContent =
+        `R$ ${(d.total_revenue / 1e6).toFixed(1)}M`;
+      document.getElementById('kpi-orders').textContent =
+        d.total_orders.toLocaleString();
+      document.getElementById('kpi-review').textContent =
+        `${d.avg_review_score} / 5`;
+
+      const delay = d.avg_delivery_delay_days;
+      const delayEl = document.getElementById('kpi-delay');
+      delayEl.textContent = `${delay > 0 ? '+' : ''}${delay.toFixed(1)} d`;
+      delayEl.style.color = delay > 0 ? '#dc3545' : '#198754';
+
+      document.getElementById('kpi-peak').textContent =
+        d.best_revenue_month.slice(0, 7);
+
+      const mom = d.avg_mom_growth_pct;
+      const momEl = document.getElementById('kpi-mom');
+      momEl.textContent = `${mom > 0 ? '+' : ''}${mom}%`;
+      momEl.style.color = mom >= 0 ? '#198754' : '#dc3545';
+
+      // model metrics badges
+      const cm = d.model_metrics.churn_model;
+      const rm = d.model_metrics.review_model;
+      document.getElementById('churn-prauc').textContent  = cm.pr_auc;
+      document.getElementById('churn-rocauc').textContent = cm.roc_auc;
+      document.getElementById('review-prauc').textContent  = rm.pr_auc;
+      document.getElementById('review-rocauc').textContent = rm.roc_auc;
+      document.getElementById('model-row').style.display = '';
+    }
+
+    /* ----------------------------------------------------------------
+       Revenue chart (line + dual-axis bar for MoM growth)
+    ---------------------------------------------------------------- */
+    async function loadRevenue() {
+      const data = await apiFetch('/metrics/revenue?limit=24');
+      const months  = data.map(d => d.month);
+      const revenue = data.map(d => d.revenue);
+      const growth  = data.map(d => d.mom_growth_pct);
+
+      Plotly.newPlot('revenue-chart', [
+        {
+          x: months, y: revenue, name: 'Revenue (R$)',
+          type: 'scatter', mode: 'lines+markers',
+          fill: 'tozeroy', fillcolor: 'rgba(13,110,253,0.10)',
+          line: { color: '#0d6efd', width: 2 },
+          marker: { size: 5, color: '#0d6efd' },
+          hovertemplate: '%{x}<br>R$ %{y:,.0f}<extra></extra>',
+        },
+        {
+          x: months, y: growth, name: 'MoM Growth %',
+          type: 'bar', yaxis: 'y2',
+          marker: {
+            color: growth.map(v =>
+              v == null ? 'transparent' : v >= 0
+                ? 'rgba(25,135,84,0.45)' : 'rgba(220,53,69,0.45)'
+            ),
+          },
+          hovertemplate: '%{x}<br>MoM: %{y:.1f}%<extra></extra>',
+        },
+      ], {
+        ...LAYOUT_BASE,
+        title: { text: 'Monthly Revenue & MoM Growth', font: { size: 13 } },
+        yaxis:  { title: 'Revenue (R$)', tickformat: ',.0f', gridcolor: '#f0f0f0' },
+        yaxis2: { title: 'MoM %', overlaying: 'y', side: 'right', gridcolor: 'transparent', zeroline: false },
+        legend: { orientation: 'h', y: -0.18, x: 0 },
+        hovermode: 'x unified',
+        margin: { t: 42, l: 65, r: 55, b: 55 },
+      }, CFG);
+    }
+
+    /* ----------------------------------------------------------------
+       Delivery delay by state (horizontal bar)
+    ---------------------------------------------------------------- */
+    async function loadDelivery() {
+      const data = await apiFetch('/metrics/delivery?sort_by=avg_delay_days');
+      const top = data.slice(0, 18);
+
+      Plotly.newPlot('delivery-chart', [{
+        x: top.map(d => d.avg_delay_days),
+        y: top.map(d => d.customer_state),
+        type: 'bar', orientation: 'h',
+        marker: {
+          color: top.map(d => d.avg_delay_days > 0 ? '#dc3545' : '#198754'),
+          opacity: 0.75,
+        },
+        hovertemplate: '%{y}: %{x:.1f} days<extra></extra>',
+      }], {
+        ...LAYOUT_BASE,
+        title: { text: 'Delivery Delay by State (days)', font: { size: 13 } },
+        xaxis: {
+          title: '← early  |  late →',
+          zeroline: true, zerolinecolor: '#999', zerolinewidth: 1.5,
+          gridcolor: '#f0f0f0',
+        },
+        yaxis: { automargin: true, tickfont: { size: 10 } },
+        margin: { t: 42, l: 40, r: 18, b: 45 },
+      }, CFG);
+    }
+
+    /* ----------------------------------------------------------------
+       Cohort heatmap
+    ---------------------------------------------------------------- */
+    async function loadCohort() {
+      const data = await apiFetch('/cohort?max_months=12');
+      const periods = Array.from({ length: data.max_period + 1 }, (_, i) => `M+${i}`);
+      const cohorts = data.cohort_months.map(m => m.slice(0, 7));
+      const z = data.matrix.map(row =>
+        periods.map((_, i) => {
+          const v = row[String(i)];
+          return (v == null || isNaN(v)) ? null : v;
+        })
+      );
+      const textZ = z.map(row => row.map(v => v != null ? `${(v * 100).toFixed(0)}%` : ''));
+
+      Plotly.newPlot('cohort-chart', [{
+        z, x: periods, y: cohorts,
+        type: 'heatmap',
+        colorscale: [[0,'#fff3cd'],[0.25,'#ffc107'],[0.5,'#4da6ff'],[1,'#003d99']],
+        zmin: 0, zmax: 1,
+        hoverongaps: false,
+        colorbar: {
+          title: { text: 'Retention', side: 'right' },
+          tickformat: '.0%', len: 0.85, thickness: 14,
+        },
+        text: textZ,
+        texttemplate: '%{text}',
+        textfont: { size: 9, color: '#333' },
+        hovertemplate: 'Cohort: %{y}<br>Period: %{x}<br>Retention: %{z:.1%}<extra></extra>',
+      }], {
+        ...LAYOUT_BASE,
+        title: { text: 'Customer Cohort Retention Matrix', font: { size: 13 } },
+        xaxis: { title: 'Months Since First Order', tickfont: { size: 10 } },
+        yaxis: { title: 'Cohort Month', automargin: true, tickfont: { size: 10 } },
+        margin: { t: 42, l: 80, r: 80, b: 50 },
+      }, CFG);
+    }
+
+    /* ----------------------------------------------------------------
+       SHAP horizontal bar chart
+    ---------------------------------------------------------------- */
+    function renderShap(divId, drivers) {
+      const sorted = [...drivers].sort((a, b) => Math.abs(a.shap_value) - Math.abs(b.shap_value));
+      const colors = sorted.map(d =>
+        d.direction === 'increases_risk' ? 'rgba(220,53,69,0.80)' : 'rgba(25,135,84,0.80)'
+      );
+
+      Plotly.newPlot(divId, [{
+        x: sorted.map(d => d.shap_value),
+        y: sorted.map(d => d.feature),
+        type: 'bar', orientation: 'h',
+        marker: { color: colors, line: { width: 0 } },
+        text: sorted.map(d => d.shap_value > 0
+          ? `+${d.shap_value.toFixed(3)}` : d.shap_value.toFixed(3)),
+        textposition: 'outside',
+        textfont: { size: 10 },
+        hovertemplate: '<b>%{y}</b><br>SHAP: %{x:.4f}<extra></extra>',
+      }], {
+        ...LAYOUT_BASE,
+        title: { text: 'SHAP Feature Drivers (top 5)', font: { size: 12 } },
+        xaxis: {
+          title: 'SHAP value',
+          zeroline: true, zerolinecolor: '#333', zerolinewidth: 1,
+          gridcolor: '#f0f0f0',
+        },
+        yaxis: { automargin: true, tickfont: { size: 10 } },
+        shapes: [{
+          type: 'line', x0: 0, x1: 0,
+          y0: -0.5, y1: sorted.length - 0.5,
+          line: { color: '#555', width: 1, dash: 'dot' },
+        }],
+        margin: { t: 35, l: 170, r: 60, b: 45 },
+      }, CFG);
+    }
+
+    /* ----------------------------------------------------------------
+       Churn predictor form
+    ---------------------------------------------------------------- */
+    document.getElementById('churn-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const fd  = new FormData(e.target);
+      const btn = document.getElementById('churn-submit-btn');
+
+      const payload = {
+        frequency:          +fd.get('frequency'),
+        monetary:           +fd.get('monetary'),
+        avg_order_value:    +fd.get('avg_order_value'),
+        avg_review_score:   +fd.get('avg_review_score'),
+        avg_delivery_delay: +fd.get('avg_delivery_delay'),
+        pct_late_orders:    +fd.get('pct_late_orders'),
+        avg_installments:   +fd.get('avg_installments'),
+        tenure_days:        +fd.get('tenure_days'),
+        customer_state:     fd.get('customer_state'),
+        top_category:       fd.get('top_category'),
+        top_payment_type:   fd.get('top_payment_type'),
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Predicting…';
+
+      try {
+        const res = await apiFetch('/predict/churn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        document.getElementById('churn-placeholder').style.display = 'none';
+        const card = document.getElementById('churn-result');
+        card.style.display = 'block';
+
+        const pct = `${(res.churn_probability * 100).toFixed(1)}%`;
+        const probEl = document.getElementById('churn-prob');
+        probEl.textContent = pct;
+        probEl.style.color = res.churn_prediction ? '#dc3545' : '#198754';
+
+        document.getElementById('churn-base').textContent = res.base_value;
+
+        const badge = document.getElementById('churn-badge');
+        badge.textContent = res.churn_prediction ? 'HIGH CHURN RISK' : 'LOW CHURN RISK';
+        badge.className   = `badge fs-6 px-3 py-2 ${res.churn_prediction ? 'bg-danger' : 'bg-success'}`;
+
+        renderShap('churn-shap-chart', res.shap_drivers);
+
+      } catch (err) {
+        alert(`Prediction failed: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Predict Churn';
+      }
+    });
+
+    /* ----------------------------------------------------------------
+       Review risk predictor form
+    ---------------------------------------------------------------- */
+    document.getElementById('review-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const fd  = new FormData(e.target);
+      const btn = document.getElementById('review-submit-btn');
+
+      const payload = {
+        price:                +fd.get('price'),
+        freight_value:        +fd.get('freight_value'),
+        delivery_delay:       +fd.get('delivery_delay'),
+        payment_installments: +fd.get('payment_installments'),
+        payment_type:         fd.get('payment_type'),
+        category:             fd.get('category'),
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Predicting…';
+
+      try {
+        const res = await apiFetch('/predict/review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        document.getElementById('review-placeholder').style.display = 'none';
+        const card = document.getElementById('review-result');
+        card.style.display = 'block';
+
+        const pct = `${(res.low_review_probability * 100).toFixed(1)}%`;
+        const probEl = document.getElementById('review-prob');
+        probEl.textContent = pct;
+        probEl.style.color = res.low_review_prediction ? '#dc3545' : '#198754';
+
+        document.getElementById('review-base').textContent = res.base_value;
+
+        const badge = document.getElementById('review-badge');
+        badge.textContent = res.low_review_prediction ? 'HIGH REVIEW RISK' : 'LOW REVIEW RISK';
+        badge.className   = `badge fs-6 px-3 py-2 ${res.low_review_prediction ? 'bg-danger' : 'bg-success'}`;
+
+        renderShap('review-shap-chart', res.shap_drivers);
+
+      } catch (err) {
+        alert(`Prediction failed: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Predict Review Risk';
+      }
+    });
+
+    /* ----------------------------------------------------------------
+       Init — load all analytics on page load
+    ---------------------------------------------------------------- */
+    loadMetrics().catch(e => console.error('Metrics:', e));
+    loadRevenue().catch(e => console.error('Revenue:', e));
+    loadDelivery().catch(e => console.error('Delivery:', e));
+    loadCohort().catch(e => console.error('Cohort:', e));
+  </script>
+</body>
+</html>
