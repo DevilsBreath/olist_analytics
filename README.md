@@ -141,7 +141,6 @@ GRANT ALL PRIVILEGES ON DATABASE olist_db TO olist_user;
 conda create -n olist 
 conda activate olist
 pip install -r requirements.txt
-pip install jupyter xgboost lightgbm shap imbalanced-learn psycopg2-binary sqlalchemy
 ```
 
 ### Step 3 — Run notebooks in order
