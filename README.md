@@ -108,12 +108,6 @@ pip install -r requirements.txt
 
 # 3. Start the server
 uvicorn api.main:app --host 0.0.0.0 --port 8000
-
-# 4. Open dashboard
-# http://localhost:8000/ui
-
-# 5. Interactive API docs
-# http://localhost:8000/docs
 ```
 
 ---
@@ -229,65 +223,7 @@ Interactive docs: `http://localhost:8000/docs`
 | GET | `/metrics/sellers?top_n=20` | Top sellers by revenue + review score |
 | GET | `/cohort?max_months=12` | Cohort retention matrix (pivot table) |
 
-### Prediction Endpoints
 
-**POST `/predict/churn`**
-
-```json
-// Request
-{
-  "frequency": 1,
-  "monetary": 120.0,
-  "avg_order_value": 120.0,
-  "avg_review_score": 2.5,
-  "avg_delivery_delay": 4.5,
-  "pct_late_orders": 1.0,
-  "avg_installments": 1.0,
-  "tenure_days": 0,
-  "customer_state": "SP",
-  "top_category": "health_beauty",
-  "top_payment_type": "boleto"
-}
-
-// Response
-{
-  "churn_probability": 0.7842,
-  "churn_prediction": true,
-  "threshold": 0.5,
-  "base_value": -0.0081,
-  "shap_drivers": [
-    {"feature": "avg_review_score", "shap_value": 0.8993, "direction": "increases_risk"},
-    {"feature": "avg_installments", "shap_value": 0.6643, "direction": "increases_risk"},
-    ...
-  ]
-}
-```
-
-**POST `/predict/review`**
-
-```json
-// Request
-{
-  "price": 200.0,
-  "freight_value": 30.0,
-  "delivery_delay": 10.5,
-  "payment_installments": 1,
-  "payment_type": "boleto",
-  "category": "electronics"
-}
-
-// Response
-{
-  "low_review_probability": 0.9289,
-  "low_review_prediction": true,
-  "threshold": 0.5,
-  "base_value": 0.3639,
-  "shap_drivers": [
-    {"feature": "delivery_delay", "shap_value": 2.5406, "direction": "increases_risk"},
-    ...
-  ]
-}
-```
 
 ---
 
