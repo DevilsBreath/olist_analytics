@@ -231,6 +231,8 @@ Interactive docs: `http://localhost:8000/docs`
 
 Served at `http://localhost:8000/ui` (Bootstrap 5 + Plotly.js, no build step).
 
+The UI is a lightweight, tabbed single-page dashboard with KPI cards up top and interactive charts below. It keeps the analytics and prediction flows separated by tab, so users can inspect trends, then switch to churn or review risk forms and see SHAP-driven explanations in-context. The layout is responsive and optimized for quick scanning (metrics first, details on demand).
+
 | Tab | Charts |
 |---|---|
 | Analytics | 6 KPI cards · Revenue trend + MoM growth (dual-axis) · Delivery delay by state · Cohort retention heatmap · Model metric badges |
@@ -238,6 +240,20 @@ Served at `http://localhost:8000/ui` (Bootstrap 5 + Plotly.js, no build step).
 | Review Risk | 6-field form → low-review probability + SHAP horizontal bar |
 
 SHAP bars are colored by direction: red = increases risk, green = decreases risk.
+
+### Screenshots
+
+**Overall UI**
+
+![Overall UI](SS/img1.png)
+
+**Churn Predictor**
+
+![Churn Predictor](SS/img3.png)
+
+**Review Risk**
+
+![Review Risk](SS/img4.png)
 
 ---
 
